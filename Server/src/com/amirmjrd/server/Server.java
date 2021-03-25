@@ -1,15 +1,13 @@
 package com.amirmjrd.server;
 
 import com.amirmjrd.Messages;
-import com.amirmjrd.interfaces.IProtocol;
 import com.amirmjrd.interfaces.SuperServer;
+import com.amirmjrd.parser.Message;
 import com.amirmjrd.server_thread.ServerThread;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Server extends SuperServer {
@@ -60,4 +58,36 @@ public class Server extends SuperServer {
         }
     }
 
+    public void sendPublicMessage(Message message) {
+        clients.forEach((s, serverThread) -> {
+            try {
+                serverThread.sendMessage(Messages.serverPublicMessage(message));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void sendPrivateMessage(Message message) {
+        ArrayList<String> usernames = message.getUsernames();
+        this.clients.forEach((s, serverThread) -> {
+            if (usernames.contains(s)) {
+                String messageText = Messages.serverPrivateMessage(message, generateUsernames(usernames));
+                try {
+                    serverThread.sendMessage(messageText);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public String generateUsernames(ArrayList<String> usernames) {
+        StringBuilder builder = new StringBuilder();
+        this.clients.keySet().forEach(s -> {
+            if (usernames.contains(s))
+                builder.append(String.format("%s,", s));
+        });
+        return builder.toString();
+    }
 }

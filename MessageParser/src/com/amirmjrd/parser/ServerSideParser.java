@@ -10,36 +10,70 @@ public class ServerSideParser extends Parser {
     @Override
     public Commands findTypeOfMessage(String message) {
         this.messageText = message;
+        split("\\s+");
         if (message.contains("\r\n")) {
-            split("\r\n");
-            if (this.tokensList.contains("Private")) {
-                split("\r\n");
-                String[] usernames = tokensList.get(4).split(",");
-                ArrayList<String> usernamesList = new ArrayList<>(Arrays.asList(usernames));
-
-//                PrivateMessage privateMessage = new PrivateMessage(usernamesList, );
-                return Commands.PRIVATE_MESSAGE;
-            } else if (this.tokensList.contains("Public"))
-                return Commands.PUBLIC_MESSAGE;
+            if (this.tokensList.contains("Here"))
+                return getList();
+            else if (this.tokensList.contains("Public"))
+                publicMessage();
+            else if (this.tokensList.contains("Private"))
+                privateMessage();
         } else {
-            split("\\s+");
-            if (this.tokensList.contains("Hi")) {
-                String username = message.split("\\s+")[1];
-                this.message = new Message(message, username, Commands.HANDSHAKE);
-                return Commands.HANDSHAKE;
-            } else if (this.tokensList.contains("join")) {
-                String username = message.split("\\s+")[0];
-                this.message = new Message(message, username, Commands.HANDSHAKE);
-                return Commands.HANDSHAKE;
-
-            } else if (this.tokensList.contains("list"))
-                return Commands.GET_LIST;
-            else if (this.tokensList.contains("Bye.")) {
-
-                return Commands.EXIT;
-            }
+            if (this.tokensList.contains("join"))
+                join();
+            else if (this.tokensList.contains("Hi"))
+                return handshake();
+            else if (this.tokensList.contains("left"))
+                return exit();
         }
         return Commands.NULL;
     }
 
+    public Commands getList() {
+        this.message = new Message(messageText, Commands.GET_LIST);
+        this.message.setUsernames(splitUsernames(tokensList.get(7)));
+        return Commands.GET_LIST;
+    }
+
+
+    private Commands publicMessage() {
+        this.message = new Message(messageText, Commands.PUBLIC_MESSAGE);
+        this.message.setUsername(this.tokensList.get(3));
+        this.message.setMessageLength(Integer.parseInt(this.tokensList.get(7)));
+        this.message.setBodyMessage(this.tokensList.get(9));
+        return Commands.PUBLIC_MESSAGE;
+    }
+
+    private Commands privateMessage() {
+        this.message = new Message(messageText, Commands.PRIVATE_MESSAGE);
+        this.message.setUsername(this.tokensList.get(6));
+        this.message.setMessageLength(Integer.parseInt(this.tokensList.get(4)));
+        this.message.setUsernames(splitUsernames(this.tokensList.get(8)));
+        this.message.setBodyMessage(this.tokensList.get(10));
+        return Commands.PRIVATE_MESSAGE;
+    }
+
+    private Commands join() {
+        this.message = new Message(messageText, Commands.HANDSHAKE);
+        this.message.setUsername(this.tokensList.get(0));
+        return Commands.HANDSHAKE;
+    }
+
+    private Commands handshake() {
+        this.message = new Message(messageText, Commands.HANDSHAKE);
+        this.message.setUsername(this.tokensList.get(1));
+        return Commands.HANDSHAKE;
+    }
+
+
+    private Commands exit() {
+        this.message = new Message(messageText, Commands.EXIT);
+        this.message.setUsername(this.tokensList.get(0));
+        return Commands.EXIT;
+    }
+
+    private ArrayList<String> splitUsernames(String usernames) {
+        String[] usernamesStrings = usernames.split(",");
+        return new ArrayList<>(Arrays.asList(usernamesStrings));
+    }
 }

@@ -6,15 +6,15 @@ Handshake:
 List of Users:
     Code:
     Client: "Please send the list of attendees." -> $SERVER
-    Server: "Here is the list of attendees:\r\n<username1>,<username2>,...\r\n" -> $CLIENT
+    Server: "Here is the list of attendees : \r\n<username1>,<username2>,...\r\n" -> $CLIENT
 Public Message:
     Code:
-    Client: "Public message, length=<message_length>:\r\n<message_body>" -> $Server1
-    Server: "Public message from <username>, length=<message_length>:\r\n<message_body>" -> $ALL_CLIENTS
+    Client: "Public message, length = <message_length> : \r\n<message_body>" -> $Server1
+    Server: "Public message from <username> , length = <message_length> : \r\n<message_body>" -> $ALL_CLIENTS
 Private Message:
     Code:
-    Client: "Private message, length=<message_length> to <username1>,<username2>,... : \r\n<message_body>" -> $SERVER
-    Server: "Private message, length=<message_length> from <username> to <username1>,<username2>,...:\r\n<message_body>"
+    Client: "Private message, length = <message_length> to <username1>,<username2>,... : \r\n<message_body>" -> $SERVER
+    Server: "Private message, length = <message_length> from <username> to <username1>,<username2>,... : \r\n<message_body>"
 Exit:
     Code:
     Client: "Bye."

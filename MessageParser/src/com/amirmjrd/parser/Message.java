@@ -2,14 +2,18 @@ package com.amirmjrd.parser;
 
 import com.amirmjrd.Commands;
 
+import java.util.ArrayList;
+
 public class Message {
     private String rawMessage, username, bodyMessage;
     private Commands commands;
     private int messageLength;
+    private ArrayList<String> usernames;
 
     public Message(String rawMessage, Commands commands) {
         this.rawMessage = rawMessage;
         this.commands = commands;
+        this.usernames = new ArrayList<>();
     }
 
     public Message(String rawMessage, String username, Commands commands) {
@@ -21,14 +25,6 @@ public class Message {
         this(rawMessage, username, commands);
         this.bodyMessage = bodyMessage;
         this.messageLength = messageLength;
-    }
-
-    public String getRawMessage() {
-        return rawMessage;
-    }
-
-    public void setRawMessage(String rawMessage) {
-        this.rawMessage = rawMessage;
     }
 
     public String getUsername() {
@@ -47,19 +43,19 @@ public class Message {
         this.bodyMessage = bodyMessage;
     }
 
-    public Commands getCommands() {
-        return commands;
-    }
-
-    public void setCommands(Commands commands) {
-        this.commands = commands;
-    }
-
     public int getMessageLength() {
         return messageLength;
     }
 
     public void setMessageLength(int messageLength) {
         this.messageLength = messageLength;
+    }
+
+    public ArrayList<String> getUsernames() {
+        return usernames;
+    }
+
+    public void setUsernames(ArrayList<String> usernames) {
+        this.usernames = usernames;
     }
 }

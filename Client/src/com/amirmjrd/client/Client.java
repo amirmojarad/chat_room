@@ -2,15 +2,19 @@ package com.amirmjrd.client;
 
 import com.amirmjrd.Commands;
 import com.amirmjrd.Messages;
+import com.amirmjrd.interfaces.IProtocol;
 import com.amirmjrd.interfaces.SuperClient;
 
 import java.io.IOException;
 
-public class Client extends SuperClient {
+public class Client extends SuperClient implements IProtocol {
 
-    public Client() throws IOException {
+    public Client(String username) throws IOException {
         super();
+        this.username = username;
+        handShake();
     }
+
 
     @Override
     public void handShake() {
@@ -34,23 +38,30 @@ public class Client extends SuperClient {
     }
 
     @Override
-    public void privateMessage() {
-
-    }
-
-    @Override
-    public void publicMessage() {
-
-    }
-
-    @Override
     public void getList() {
-
+        try {
+            sendMessage(Messages.clientGetList());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public String rec() throws IOException {
-        this.receiveMessage();
-        return messageText;
+    @Override
+    public void sendPublicMessage() {
+        try {
+            sendMessage(Messages.clientPublicMessage(message));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void sendPrivateMessage() {
+        try {
+            sendMessage(Messages.clientPrivateMessage(message, getUsernames()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -65,6 +76,13 @@ public class Client extends SuperClient {
                     case HANDSHAKE:
                         handShake();
                         break;
+                    case GET_LIST:
+                        getList();
+                        break;
+                    case PRIVATE_MESSAGE:
+                        sendPrivateMessage();
+                    case PUBLIC_MESSAGE:
+                        sendPublicMessage();
                     case EXIT:
                         exit = true;
                         exit();

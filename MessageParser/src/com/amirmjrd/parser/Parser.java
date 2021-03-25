@@ -10,6 +10,7 @@ public abstract class Parser {
     protected String[] tokens = null;
     protected ArrayList<String> tokensList;
     protected Message message = null;
+
     public Parser() {
         this.tokensList = new ArrayList<>();
     }
@@ -19,7 +20,6 @@ public abstract class Parser {
         length = length.substring(0, length.length() - 1);
         return Integer.parseInt(length);
     }
-
 
 
     protected void split(String splitter) {
@@ -44,11 +44,4 @@ public abstract class Parser {
     public void setMessage(Message message) {
         this.message = message;
     }
-
-    public static void main(String[] args) {
-        ClientSideParser parser= new ClientSideParser();
-        parser.findTypeOfMessage("Hello amir");
-
-    }
-//    protected abstract String ()
 }

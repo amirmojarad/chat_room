@@ -9,5 +9,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Server" />
     <orderEntry type="module" module-name="Client" />
+    <orderEntry type="module" module-name="Protocol" />
   </component>
 </module>

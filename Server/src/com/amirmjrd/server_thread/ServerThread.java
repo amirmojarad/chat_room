@@ -2,22 +2,24 @@ package com.amirmjrd.server_thread;
 
 import com.amirmjrd.Commands;
 import com.amirmjrd.Messages;
+import com.amirmjrd.interfaces.IProtocol;
 import com.amirmjrd.parser.ClientSideParser;
 import com.amirmjrd.parser.Message;
 import com.amirmjrd.server.Server;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.ArrayList;
 
-public class ServerThread extends Thread {
+public class ServerThread extends Thread implements IProtocol {
     private DataOutputStream writer;
     private DataInputStream reader;
     private Socket socket;
     private String username;
     private Server server;
-    private String message;
-    ClientSideParser clientSideParser;
+    private String messageText;
+    private Message message;
+    private ClientSideParser clientSideParser;
 
     public ServerThread(Socket socket) throws IOException {
         this.socket = socket;
@@ -44,11 +46,11 @@ public class ServerThread extends Thread {
 
     public String receiveMessage() throws IOException {
         try {
-            message = reader.readUTF();
+            messageText = reader.readUTF();
         } catch (EOFException e) {
             this.socket.close();
         }
-        return message;
+        return messageText;
     }
 
     @Override
@@ -56,27 +58,25 @@ public class ServerThread extends Thread {
         boolean exit = false;
         while (!exit) {
             try {
-                message = receiveMessage();
-                Commands command = clientSideParser.findTypeOfMessage(message);
-                Message message = clientSideParser.getMessage();
+                messageText = receiveMessage();
+                Commands command = clientSideParser.findTypeOfMessage(messageText);
+                this.message = clientSideParser.getMessage();
                 switch (command) {
                     case HANDSHAKE:
-                        this.username = message.getUsername();
-                        this.server.addClient(username, this);
-                        sendMessage(Messages.serverHandshakeToClient(username));
-                        this.server.sendMessageToAll(username);
+                        handShake();
                         break;
                     case EXIT:
-                        this.socket.close();
-                        this.server.getClients().remove(username);
-                        this.server.getClients().forEach((s, serverThread) -> {
-                            try {
-                                serverThread.sendMessage(Messages.serverExit(username));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        });
+                        exit();
                         exit = true;
+                        break;
+                    case GET_LIST:
+                        getList();
+                        break;
+                    case PRIVATE_MESSAGE:
+                        sendPrivateMessage();
+                        break;
+                    case PUBLIC_MESSAGE:
+                        sendPublicMessage();
                         break;
                     default:
                         exit = true;
@@ -90,4 +90,53 @@ public class ServerThread extends Thread {
     }
 
 
+    @Override
+    public void handShake() {
+        try {
+            this.username = message.getUsername();
+            this.server.addClient(username, this);
+            sendMessage(Messages.serverHandshakeToClient(username));
+            this.server.sendMessageToAll(username);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Override
+    public void getList() {
+        try {
+            this.sendMessage(Messages.serverGetList(this.server.generateUsernames(message.getUsernames())));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void sendPublicMessage() {
+        this.server.sendPublicMessage(this.message);
+    }
+
+    @Override
+    public void sendPrivateMessage() {
+        this.server.sendPrivateMessage(message);
+    }
+
+
+    @Override
+    public void exit() {
+        try {
+            this.socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.server.getClients().remove(username);
+        this.server.getClients().forEach((s, serverThread) -> {
+            try {
+                serverThread.sendMessage(Messages.serverExit(username));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
 }
