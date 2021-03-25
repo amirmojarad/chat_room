@@ -1,32 +1,47 @@
 package com.amirmjrd.interfaces;
 
-import java.io.*;
+import com.amirmjrd.parser.Message;
+import com.amirmjrd.parser.ServerSideParser;
+
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 
-public abstract class SuperClient {
-    protected String inMessage, outMessage;
-    protected DataOutputStream writer;
+public abstract class SuperClient extends Thread {
     protected DataInputStream reader;
-    Socket socket;
-    private final static int PORT = 21000;
-    private final static String ADDRESS = "localhost";
+    protected DataOutputStream writer;
+    protected Socket socket;
+    protected String username, messageText;
+    protected ServerSideParser serverSideParser;
+    protected Message message;
+    private final int PORT = 21000;
+    private final String ADDRESS = "localhost";
 
     public SuperClient() throws IOException {
         socket = new Socket(ADDRESS, PORT);
-        writer = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
         reader = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-        inMessage = "";
-        outMessage = "";
+        writer = new DataOutputStream(new DataOutputStream(socket.getOutputStream()));
+        serverSideParser = new ServerSideParser();
     }
 
-    void writeMessage() throws IOException {
-        writer.writeUTF(outMessage);
+    protected void sendMessage(String message) throws IOException {
+        writer.writeUTF(message);
         writer.flush();
     }
 
-    void readMessage() throws IOException {
-        inMessage = reader.readUTF();
+    protected void receiveMessage() throws IOException {
+        this.messageText = reader.readUTF();
     }
 
+    public abstract void handShake();
 
+    public abstract void exit();
+
+    public abstract void privateMessage();
+
+    public abstract void publicMessage();
+
+    public abstract void getList();
 }
