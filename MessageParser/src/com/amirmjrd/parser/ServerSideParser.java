@@ -6,12 +6,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ServerSideParser extends Parser {
+    String messageBody;
 
     @Override
     public Commands findTypeOfMessage(String message) {
         this.messageText = message;
         split("\\s+");
         if (message.contains("\r\n")) {
+            messageBody = message.substring(message.indexOf("\n"));
+            messageBody = messageBody.trim();
             if (this.tokensList.contains("Here"))
                 return getList();
             else if (this.tokensList.contains("Public"))
@@ -40,7 +43,7 @@ public class ServerSideParser extends Parser {
         this.message = new Message(messageText, Commands.PUBLIC_MESSAGE);
         this.message.setUsername(this.tokensList.get(3));
         this.message.setMessageLength(Integer.parseInt(this.tokensList.get(7)));
-        this.message.setBodyMessage(this.tokensList.get(9));
+        this.message.setBodyMessage(messageBody);
         return Commands.PUBLIC_MESSAGE;
     }
 
@@ -49,7 +52,7 @@ public class ServerSideParser extends Parser {
         this.message.setUsername(this.tokensList.get(6));
         this.message.setMessageLength(Integer.parseInt(this.tokensList.get(4)));
         this.message.setUsernames(splitUsernames(this.tokensList.get(8)));
-        this.message.setBodyMessage(this.tokensList.get(10));
+        this.message.setBodyMessage(messageBody);
         return Commands.PRIVATE_MESSAGE;
     }
 
@@ -73,6 +76,7 @@ public class ServerSideParser extends Parser {
     }
 
     private ArrayList<String> splitUsernames(String usernames) {
+        System.out.println(usernames);
         String[] usernamesStrings = usernames.split(",");
         return new ArrayList<>(Arrays.asList(usernamesStrings));
     }

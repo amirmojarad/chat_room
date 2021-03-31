@@ -9,12 +9,15 @@ public class ClientSideParser extends Parser {
     public ClientSideParser() {
     }
 
+    String messageBody;
+
     @Override
     public Commands findTypeOfMessage(String message) {
         this.messageText = message;
         //Multi-Line Messages
         split("\\s+");
         if (message.contains("\r\n")) {
+            messageBody = message.substring(message.indexOf("\n"));
             if (this.tokensList.contains("Private")) {
                 privateMessage();
                 return Commands.PRIVATE_MESSAGE;
@@ -39,15 +42,16 @@ public class ClientSideParser extends Parser {
     private void publicMessage() {
         this.message = new Message(messageText, Commands.PUBLIC_MESSAGE);
         this.message.setMessageLength(Integer.parseInt(tokensList.get(4)));
-        this.message.setBodyMessage(tokensList.get(6));
+        this.message.setBodyMessage(messageBody);
+        System.out.println("BODY MESSAGE" + messageBody);
     }
 
     private void privateMessage() {
         String[] usernames = tokensList.get(8).split(",");
         ArrayList<String> usernamesList = new ArrayList<>(Arrays.asList(usernames));
+        this.message.setBodyMessage(messageBody);
         this.message = new Message(messageText, Commands.PRIVATE_MESSAGE);
         this.message.setUsernames(usernamesList);
-        this.message.setBodyMessage(tokensList.get(10));
         this.message.setMessageLength(Integer.parseInt(tokensList.get(4)));
         this.message.setUsername(tokensList.get(6));
     }

@@ -20,8 +20,10 @@ public class Client extends SuperClient implements IProtocol {
     public void handShake() {
         try {
             sendMessage(Messages.clientHandshake(username));
-            receiveMessage();
-            System.out.println(messageText);
+//            receiveMessage();
+//            System.out.println(messageText);
+//            receiveMessage();
+//            System.out.println(messageText);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -32,6 +34,8 @@ public class Client extends SuperClient implements IProtocol {
         try {
             sendMessage(Messages.clientExit());
             socket.close();
+            reader.close();
+            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -50,6 +54,7 @@ public class Client extends SuperClient implements IProtocol {
     public void sendPublicMessage() {
         try {
             sendMessage(Messages.clientPublicMessage(message));
+//            receiveMessage();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -66,28 +71,29 @@ public class Client extends SuperClient implements IProtocol {
 
     @Override
     public void run() {
-        boolean exit = false;
         while (!exit) {
             try {
+                if(this.socket.isClosed()) break;
                 receiveMessage();
                 Commands commands = serverSideParser.findTypeOfMessage(messageText);
                 message = serverSideParser.getMessage();
-                switch (commands) {
-                    case HANDSHAKE:
-                        handShake();
-                        break;
-                    case GET_LIST:
-                        getList();
-                        break;
-                    case PRIVATE_MESSAGE:
-                        sendPrivateMessage();
-                    case PUBLIC_MESSAGE:
-                        sendPublicMessage();
-                    case EXIT:
-                        exit = true;
-                        exit();
-                        break;
-                }
+                this.messages.add(this.message);
+//                switch (commands) {
+//                    case HANDSHAKE:
+//                        handShake();
+//                        break;
+//                    case GET_LIST:
+//                        getList();
+//                        break;
+//                    case PRIVATE_MESSAGE:
+//                        sendPrivateMessage();
+//                    case PUBLIC_MESSAGE:
+//                        sendPublicMessage();
+//                    case EXIT:
+//                        exit = true;
+//                        exit();
+//                        break;
+//                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

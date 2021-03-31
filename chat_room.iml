@@ -10,5 +10,7 @@
     <orderEntry type="module" module-name="Server" />
     <orderEntry type="module" module-name="Client" />
     <orderEntry type="module" module-name="Protocol" />
+    <orderEntry type="module" module-name="GUI" />
+    <orderEntry type="library" name="lib" level="project" />
   </component>
 </module>

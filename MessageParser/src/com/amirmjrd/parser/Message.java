@@ -13,6 +13,7 @@ public class Message {
     public Message(String rawMessage, Commands commands) {
         this.rawMessage = rawMessage;
         this.commands = commands;
+        this.messageLength = this.rawMessage.length();
         this.usernames = new ArrayList<>();
     }
 
@@ -53,6 +54,14 @@ public class Message {
 
     public ArrayList<String> getUsernames() {
         return usernames;
+    }
+
+    public String getRawMessage() {
+        return rawMessage;
+    }
+
+    public Commands getCommands() {
+        return commands;
     }
 
     public void setUsernames(ArrayList<String> usernames) {

@@ -8,35 +8,37 @@ import com.amirmjrd.server_thread.ServerThread;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 public class Server extends SuperServer {
     private HashMap<String, ServerThread> clients;
-
     public Server() throws IOException {
         super();
         this.clients = new HashMap<>();
     }
 
-    private boolean isExist(String username) {
+    public boolean isExist(String username) {
         return clients.containsKey(username);
     }
 
     public void sendMessageToAll(String username) {
+
         clients.forEach((clientUsername, serverThread) -> {
-            if (!username.equals(clientUsername)) {
-                try {
-                    serverThread.sendMessage(Messages.serverHandshakeToAll(username));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//            if (!username.equals(clientUsername)) {
+            try {
+                serverThread.sendMessage(Messages.serverHandshakeToAll(username));
+            } catch (IOException e) {
+                e.printStackTrace();
+//                }
             }
         });
     }
 
-
     public void addClient(String username, ServerThread serverThread) throws IOException {
         if (!isExist(username)) {
+            clients.forEach((s, serverThread1) -> System.out.println(s));
             this.clients.putIfAbsent(username, serverThread);
         }
     }
@@ -82,10 +84,11 @@ public class Server extends SuperServer {
         });
     }
 
-    public String generateUsernames(ArrayList<String> usernames) {
+    public String generateUsernames(Collection<String> usernames) {
+        List<String> strings = (List<String>) usernames;
         StringBuilder builder = new StringBuilder();
         this.clients.keySet().forEach(s -> {
-            if (usernames.contains(s))
+            if (strings.contains(s))
                 builder.append(String.format("%s,", s));
         });
         return builder.toString();

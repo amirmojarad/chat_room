@@ -1,5 +1,6 @@
 package com.amirmjrd.interfaces;
 
+import com.amirmjrd.Commands;
 import com.amirmjrd.parser.Message;
 import com.amirmjrd.parser.ServerSideParser;
 
@@ -8,8 +9,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public abstract class SuperClient extends Thread {
     protected DataInputStream reader;
@@ -19,15 +20,17 @@ public abstract class SuperClient extends Thread {
     protected ServerSideParser serverSideParser;
     protected Message message;
     protected ArrayList<String> selectedUsernames;
-    private final int PORT = 21000;
-    private final String ADDRESS = "localhost";
-
+    protected ArrayDeque<Message> messages;
+    protected boolean exit;
+    protected boolean newMessage = false;
     public SuperClient() throws IOException {
-        socket = new Socket(ADDRESS, PORT);
+        exit = false;
+        socket = new Socket("localhost", 21000);
         reader = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
         writer = new DataOutputStream(new DataOutputStream(socket.getOutputStream()));
         serverSideParser = new ServerSideParser();
         this.selectedUsernames = new ArrayList<>();
+        this.messages = new ArrayDeque<>();
     }
 
     protected void sendMessage(String message) throws IOException {
@@ -37,37 +40,40 @@ public abstract class SuperClient extends Thread {
 
     protected String getUsernames() {
         StringBuilder builder = new StringBuilder();
-        selectedUsernames.forEach(s -> {
-            builder.append(String.format("%s,", s));
-        });
+        selectedUsernames.forEach(s -> builder.append(String.format("%s,", s)));
         return builder.toString();
     }
 
-    protected boolean addUsernames(ArrayList<String> usernames) {
-        if (this.selectedUsernames.containsAll(usernames)) {
-            this.selectedUsernames.addAll(usernames);
-            return true;
+    public Message getLastMessage() {
+        if (!messages.isEmpty()){
+            newMessage = false;
+            return this.messages.removeFirst();
         }
-        return false;
+        return null;
     }
 
-    protected boolean addUsernames(String username) {
-        if (!selectedUsernames.contains(username)) {
-            this.selectedUsernames.add(username);
-            return true;
+    public boolean isNewMessage(){
+
+        return this.newMessage;
+    }
+
+    public void receiveMessage() throws IOException {
+        if (exit) return;
+        if (!socket.isClosed()) {
+            this.messageText = reader.readUTF();
+            newMessage = true;
         }
-        return false;
     }
 
-    public String getUsername() {
-        return username;
+    public void setMessage(String rawMessage) {
+        this.message = new Message(rawMessage, Commands.PUBLIC_MESSAGE);
+        this.message.setUsername(this.username);
+        this.message.setBodyMessage(rawMessage);
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public boolean isEmpty(){
+        return this.messages.isEmpty();
     }
 
-    protected void receiveMessage() throws IOException {
-        this.messageText = reader.readUTF();
-    }
+
 }

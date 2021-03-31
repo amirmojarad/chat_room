@@ -10,6 +10,7 @@ import com.amirmjrd.server.Server;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ServerThread extends Thread implements IProtocol {
     private DataOutputStream writer;
@@ -20,8 +21,10 @@ public class ServerThread extends Thread implements IProtocol {
     private String messageText;
     private Message message;
     private ClientSideParser clientSideParser;
+    boolean exit;
 
     public ServerThread(Socket socket) throws IOException {
+        this.exit = false;
         this.socket = socket;
         this.writer = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
         this.reader = new DataInputStream(new DataInputStream(socket.getInputStream()));
@@ -55,13 +58,13 @@ public class ServerThread extends Thread implements IProtocol {
 
     @Override
     public void run() {
-        boolean exit = false;
         while (!exit) {
             try {
                 messageText = receiveMessage();
+                if (socket.isClosed()) break;
                 Commands command = clientSideParser.findTypeOfMessage(messageText);
                 this.message = clientSideParser.getMessage();
-                switch (command) {
+                switch (Objects.requireNonNull(command)) {
                     case HANDSHAKE:
                         handShake();
                         break;
@@ -76,17 +79,25 @@ public class ServerThread extends Thread implements IProtocol {
                         sendPrivateMessage();
                         break;
                     case PUBLIC_MESSAGE:
+                        this.message.setUsername(this.username);
                         sendPublicMessage();
                         break;
                     default:
                         exit = true;
                         break;
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
+        try {
+            this.socket.close();
+            this.reader.close();
+            this.writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -94,9 +105,11 @@ public class ServerThread extends Thread implements IProtocol {
     public void handShake() {
         try {
             this.username = message.getUsername();
-            this.server.addClient(username, this);
-            sendMessage(Messages.serverHandshakeToClient(username));
-            this.server.sendMessageToAll(username);
+            if (!this.server.isExist(username)) {
+                this.server.addClient(username, this);
+                sendMessage(Messages.serverHandshakeToClient(username));
+                this.server.sendMessageToAll(username);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -106,7 +119,9 @@ public class ServerThread extends Thread implements IProtocol {
     @Override
     public void getList() {
         try {
-            this.sendMessage(Messages.serverGetList(this.server.generateUsernames(message.getUsernames())));
+            ArrayList<String> usernames1 = new ArrayList<>(this.server.getClients().keySet());
+            String usernames = this.server.generateUsernames(usernames1);
+            this.sendMessage(Messages.serverGetList(usernames));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -114,6 +129,7 @@ public class ServerThread extends Thread implements IProtocol {
 
     @Override
     public void sendPublicMessage() {
+        System.out.println("From public message: " + this.message.getBodyMessage());
         this.server.sendPublicMessage(this.message);
     }
 
@@ -125,11 +141,6 @@ public class ServerThread extends Thread implements IProtocol {
 
     @Override
     public void exit() {
-        try {
-            this.socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         this.server.getClients().remove(username);
         this.server.getClients().forEach((s, serverThread) -> {
             try {
@@ -138,5 +149,11 @@ public class ServerThread extends Thread implements IProtocol {
                 e.printStackTrace();
             }
         });
+        try {
+            this.reader.close();
+            this.writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
