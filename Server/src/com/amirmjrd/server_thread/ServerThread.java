@@ -135,7 +135,7 @@ public class ServerThread extends Thread implements IProtocol {
 
     @Override
     public void sendPrivateMessage() {
-        this.server.sendPrivateMessage(message);
+        this.server.sendPrivateMessage(message, this);
     }
 
 

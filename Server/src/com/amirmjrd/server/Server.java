@@ -14,6 +14,7 @@ import java.util.List;
 
 public class Server extends SuperServer {
     private HashMap<String, ServerThread> clients;
+
     public Server() throws IOException {
         super();
         this.clients = new HashMap<>();
@@ -70,7 +71,7 @@ public class Server extends SuperServer {
         });
     }
 
-    public void sendPrivateMessage(Message message) {
+    public void sendPrivateMessage(Message message, ServerThread thisServerThread) {
         ArrayList<String> usernames = message.getUsernames();
         this.clients.forEach((s, serverThread) -> {
             if (usernames.contains(s)) {
@@ -82,6 +83,12 @@ public class Server extends SuperServer {
                 }
             }
         });
+        try {
+            String messageText = Messages.serverPrivateMessage(message, generateUsernames(usernames));
+            thisServerThread.sendMessage(messageText);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public String generateUsernames(Collection<String> usernames) {

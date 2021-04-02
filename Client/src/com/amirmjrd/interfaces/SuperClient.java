@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Stack;
 
 public abstract class SuperClient extends Thread {
     protected DataInputStream reader;
@@ -20,7 +21,7 @@ public abstract class SuperClient extends Thread {
     protected ServerSideParser serverSideParser;
     protected Message message;
     protected ArrayList<String> selectedUsernames;
-    protected ArrayDeque<Message> messages;
+    protected Stack<Message> messages;
     protected boolean exit;
     protected boolean newMessage = false;
     public SuperClient() throws IOException {
@@ -30,13 +31,15 @@ public abstract class SuperClient extends Thread {
         writer = new DataOutputStream(new DataOutputStream(socket.getOutputStream()));
         serverSideParser = new ServerSideParser();
         this.selectedUsernames = new ArrayList<>();
-        this.messages = new ArrayDeque<>();
+        this.messages = new Stack<>();
     }
 
     protected void sendMessage(String message) throws IOException {
         writer.writeUTF(message);
         writer.flush();
     }
+
+
 
     protected String getUsernames() {
         StringBuilder builder = new StringBuilder();
@@ -47,15 +50,11 @@ public abstract class SuperClient extends Thread {
     public Message getLastMessage() {
         if (!messages.isEmpty()){
             newMessage = false;
-            return this.messages.removeFirst();
+            return this.messages.pop();
         }
         return null;
     }
 
-    public boolean isNewMessage(){
-
-        return this.newMessage;
-    }
 
     public void receiveMessage() throws IOException {
         if (exit) return;
@@ -65,8 +64,8 @@ public abstract class SuperClient extends Thread {
         }
     }
 
-    public void setMessage(String rawMessage) {
-        this.message = new Message(rawMessage, Commands.PUBLIC_MESSAGE);
+    public void setMessage(String rawMessage, Commands commands) {
+        this.message = new Message(rawMessage, commands);
         this.message.setUsername(this.username);
         this.message.setBodyMessage(rawMessage);
     }
@@ -75,5 +74,7 @@ public abstract class SuperClient extends Thread {
         return this.messages.isEmpty();
     }
 
-
+    public void setSelectedUsernames(ArrayList<String> selectedUsernames) {
+        this.selectedUsernames = selectedUsernames;
+    }
 }

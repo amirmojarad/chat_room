@@ -20,10 +20,6 @@ public class Client extends SuperClient implements IProtocol {
     public void handShake() {
         try {
             sendMessage(Messages.clientHandshake(username));
-//            receiveMessage();
-//            System.out.println(messageText);
-//            receiveMessage();
-//            System.out.println(messageText);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -78,22 +74,8 @@ public class Client extends SuperClient implements IProtocol {
                 Commands commands = serverSideParser.findTypeOfMessage(messageText);
                 message = serverSideParser.getMessage();
                 this.messages.add(this.message);
-//                switch (commands) {
-//                    case HANDSHAKE:
-//                        handShake();
-//                        break;
-//                    case GET_LIST:
-//                        getList();
-//                        break;
-//                    case PRIVATE_MESSAGE:
-//                        sendPrivateMessage();
-//                    case PUBLIC_MESSAGE:
-//                        sendPublicMessage();
-//                    case EXIT:
-//                        exit = true;
-//                        exit();
-//                        break;
-//                }
+                if(commands.equals(Commands.PRIVATE_MESSAGE))
+                    System.out.println("in Run: "+message.getBodyMessage());
             } catch (IOException e) {
                 e.printStackTrace();
             }

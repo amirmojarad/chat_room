@@ -18,12 +18,12 @@ public class ServerSideParser extends Parser {
             if (this.tokensList.contains("Here"))
                 return getList();
             else if (this.tokensList.contains("Public"))
-                publicMessage();
+                return publicMessage();
             else if (this.tokensList.contains("Private"))
-                privateMessage();
+                return privateMessage();
         } else {
             if (this.tokensList.contains("join"))
-                join();
+                return join();
             else if (this.tokensList.contains("Hi"))
                 return handshake();
             else if (this.tokensList.contains("left"))

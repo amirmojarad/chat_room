@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -14,32 +15,66 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import model_views.utils.MessageTypes;
 import views.Main;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 
 public class ControllerMainPage {
     @FXML
-    Button send, deleteAll, showUsers;
+    Button sendPublic, showUsers, sendPrivate;
     @FXML
-    TextArea messageBox;
+    TextArea messageBoxPublic, messageBoxPrivate;
     @FXML
     ScrollPane messagesView, chats, onlineUsers;
 
     @FXML
-    private void sendMessage() {
-        Main.user.getClient().setMessage(messageBox.getText());
+    private void sendPublicMessage() {
+        Main.user.getClient().setMessage(messageBoxPublic.getText(), Commands.PUBLIC_MESSAGE);
         Main.user.getClient().sendPublicMessage();
-        messageBox.clear();
+        messageBoxPublic.clear();
         update();
+    }
+
+    @FXML
+    private void sendPrivateMessage() {
+        Main.user.getClient().setMessage(messageBoxPrivate.getText(), Commands.PRIVATE_MESSAGE);
+        Main.user.getClient().setSelectedUsernames(this.privateUsernames);
+        Main.user.getClient().sendPrivateMessage();
+        addPrivateChat();
+        messageBoxPrivate.clear();
+        actionTexts(Main.user.getClient().getLastMessage());
+        update();
+    }
+
+    private Parent generatePrivateLabel(String name) {
+        Rectangle rectangle = new Rectangle();
+        rectangle.setArcHeight(15);
+        rectangle.setArcWidth(15);
+        rectangle.setFill(Color.rgb(53, 255, 184));
+        rectangle.setWidth(400);
+        rectangle.setHeight(20);
+        /////////////////////////////////////////////////////
+        Text text = new Text(name);
+        /////////////////////////////////////////////////////
+        StackPane stack = new StackPane(rectangle, text);
+        stack.setPadding(new Insets(10));
+//        stack.setOnMouseClicked(mouseEvent -> {
+//
+//        });
+        return stack;
+    }
+
+    private void addPrivateChat() {
+        VBox vBox = (VBox) chats.getContent();
+        this.privateUsernames.forEach(s -> {
+
+            vBox.getChildren().add(generatePrivateLabel(s));
+        });
     }
 
     public ControllerMainPage() {
@@ -49,12 +84,6 @@ public class ControllerMainPage {
 
     ArrayList<String> privateUsernames = new ArrayList<>();
 
-    private void getUsersList() {
-//        VBox vBox = (VBox) onlineUsers.getContent();
-//        ArrayList<String> list = new ArrayList<>();
-//        list.addAll(Main.user.getClient().get)
-//
-    }
 
     @FXML
     private void update() {
@@ -132,8 +161,16 @@ public class ControllerMainPage {
     @FXML
     private void actionTexts(Message message) {
         if (message == null) return;
+        System.out.println("from action text: " + message.getCommands());
         VBox vBox = (VBox) messagesView.getContent();
         switch (message.getCommands()) {
+            case PRIVATE_MESSAGE:
+                if (message.getUsername().equals(Main.user.getUsername()))
+                    vBox.getChildren().add(generateMessage(MessageTypes.ME, message));
+                else {
+                    vBox.getChildren().add(generateMessage(MessageTypes.OTHER, message));
+                }
+                break;
             case PUBLIC_MESSAGE:
                 if (message.getUsername().equals(Main.user.getUsername())) {
                     vBox.getChildren().add(generateMessage(MessageTypes.ME, message));
@@ -159,7 +196,17 @@ public class ControllerMainPage {
         }
     }
 
-    private HBox generateMessage(MessageTypes messageTypes, Message message) {
+    private String getUsernamesAsString(ArrayList<String> usernames) {
+        StringBuilder builder = new StringBuilder();
+        usernames.forEach(s -> builder.append(s).append(","));
+        return builder.toString();
+    }
+
+
+    private HBox generateMessage(MessageTypes person, Message message) {
+        System.out.println("from generate message: " + message.getCommands());
+        String accessLevel = message.getCommands() == Commands.PRIVATE_MESSAGE ? "Private" : "Public";
+        String usernames = getUsernamesAsString(message.getUsernames());
         Rectangle rec = new Rectangle(300, 100);
         rec.setArcHeight(20);
         rec.setArcWidth(20);
@@ -172,17 +219,22 @@ public class ControllerMainPage {
         Text header = new Text();
         header.setFill(Color.rgb(255, 255, 255));
         header.setStyle("-fx-font-weight: bold");
-        switch (messageTypes) {
-            case ME:
-                header.setText("Public Message From Me: ");
-                bodyMessage.getChildren().add(header);
-                rec.setFill(Color.rgb(53, 240, 122));
-                break;
-            case OTHER:
-                header.setText(String.format("Public Message From %s: ", message.getUsername()));
-                bodyMessage.getChildren().add(header);
-                rec.setFill(Color.rgb(0, 122, 203));
-                break;
+        if (person.equals(MessageTypes.ME) && message.getCommands().equals(Commands.PRIVATE_MESSAGE)) {
+            header.setText(String.format("%s Message From Me to %s: ", accessLevel, usernames));
+            bodyMessage.getChildren().add(header);
+            rec.setFill(Color.rgb(53, 240, 122));
+        } else if (person.equals(MessageTypes.ME) && message.getCommands().equals(Commands.PUBLIC_MESSAGE)) {
+            header.setText(String.format("%s Message From Me: ", accessLevel));
+            bodyMessage.getChildren().add(header);
+            rec.setFill(Color.rgb(53, 240, 122));
+        } else if (person.equals(MessageTypes.OTHER) && message.getCommands().equals(Commands.PUBLIC_MESSAGE)) {
+            header.setText(String.format("%s Message From %s: ", accessLevel, message.getUsername()));
+            bodyMessage.getChildren().add(header);
+            rec.setFill(Color.rgb(0, 122, 203));
+        } else if (person.equals(MessageTypes.OTHER) && message.getCommands().equals(Commands.PRIVATE_MESSAGE)) {
+            header.setText(String.format("%s Message From %s: ", accessLevel, message.getUsername()));
+            bodyMessage.getChildren().add(header);
+            rec.setFill(Color.rgb(0, 122, 203));
         }
         bodyMessage.getChildren().add(text);
         stackPane.getChildren().addAll(rec, bodyMessage);
