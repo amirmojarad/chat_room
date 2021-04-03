@@ -7,9 +7,9 @@ No External Library.
 
 # Technologies
 
-*Java: `java 11`**
+*Java: `java 11`*
 
-*JavaFX: `javaFX 11`**
+*JavaFX: `javaFX 11`*
 
 # Modules
 
@@ -18,7 +18,9 @@ No External Library.
 * GUI
 * Protocol
 
-# Running
+# Usage
+
+First Run `Server.src.com.amirmjrd.ServerRunner.java` , this class runs a server on `localhost` address and listening on `21000` port
 
 
 
