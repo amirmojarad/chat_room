@@ -103,6 +103,7 @@ public class Client extends SuperClient implements IProtocol {
                 receiveMessage();
                 serverSideParser.findTypeOfMessage(messageText);
                 message = serverSideParser.getMessage();
+                System.out.println(message.getRawMessage());
                 this.messages.add(this.message);
             } catch (IOException e) {
                 e.printStackTrace();

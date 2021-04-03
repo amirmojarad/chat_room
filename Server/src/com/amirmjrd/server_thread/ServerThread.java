@@ -83,6 +83,7 @@ public class ServerThread extends Thread implements IProtocol {
                 if (socket.isClosed()) break;
                 Commands command = clientSideParser.findTypeOfMessage(messageText);
                 this.message = clientSideParser.getMessage();
+                System.out.println(message.getRawMessage());
                 switch (Objects.requireNonNull(command)) {
                     case HANDSHAKE:
                         handShake();
