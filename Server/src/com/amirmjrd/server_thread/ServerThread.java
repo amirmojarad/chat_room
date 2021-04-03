@@ -13,14 +13,18 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class ServerThread extends Thread implements IProtocol {
-    private DataOutputStream writer;
-    private DataInputStream reader;
-    private Socket socket;
+    // I/O components
+    private final DataOutputStream writer;
+    private final DataInputStream reader;
+    // client socket
+    private final Socket socket;
     private String username;
     private Server server;
+    // message text
     private String messageText;
+    // received and sent messages
     private Message message;
-    private ClientSideParser clientSideParser;
+    private final ClientSideParser clientSideParser;
     boolean exit;
 
     public ServerThread(Socket socket) throws IOException {
@@ -36,26 +40,41 @@ public class ServerThread extends Thread implements IProtocol {
         this.server = server;
     }
 
-    public ServerThread(Socket socket, String username) throws IOException {
-        this(socket);
-        this.username = username;
-    }
-
+    /**
+     * if socket is not closed, send message in UTF style and then flush it
+     *
+     * @param message send a message to a client
+     * @throws IOException when I/O component does not open successfully
+     */
     public void sendMessage(String message) throws IOException {
         if (socket.isClosed()) return;
         writer.writeUTF(message);
         writer.flush();
     }
 
+    /**
+     * if socket is not closed, read message as UTF and then return the message text
+     *
+     * @return message text as raw message from server
+     * @throws IOException when I/O component does not open successfully
+     */
     public String receiveMessage() throws IOException {
-        try {
-            messageText = reader.readUTF();
-        } catch (EOFException e) {
-            this.socket.close();
-        }
+        if (!socket.isClosed())
+            try {
+                messageText = reader.readUTF();
+            } catch (EOFException e) {
+                this.socket.close();
+            }
         return messageText;
     }
 
+    /**
+     * while server is not exit :
+     *  - take message
+     *  - if socket is not closed: resume
+     *  - parse message and get the message from parser
+     *  - switch between protocol Requests
+     */
     @Override
     public void run() {
         while (!exit) {
@@ -100,7 +119,12 @@ public class ServerThread extends Thread implements IProtocol {
         }
     }
 
-
+    /**
+     * get username from message
+     * if server has not same client with this username resume
+     * add new client to server, send message to the client
+     * and send to all online clients
+     */
     @Override
     public void handShake() {
         try {
@@ -115,7 +139,9 @@ public class ServerThread extends Thread implements IProtocol {
         }
     }
 
-
+    /**
+     * get usernames from clients in server, send message to client
+     */
     @Override
     public void getList() {
         try {
@@ -127,18 +153,25 @@ public class ServerThread extends Thread implements IProtocol {
         }
     }
 
+    /**
+     * server send a public message to all clients
+     */
     @Override
     public void sendPublicMessage() {
-        System.out.println("From public message: " + this.message.getBodyMessage());
         this.server.sendPublicMessage(this.message);
     }
 
+    /**
+     * server sends a private message to specific clients
+     */
     @Override
     public void sendPrivateMessage() {
         this.server.sendPrivateMessage(message, this);
     }
 
-
+    /**
+     * first remove this username, and then send to all clients goodbye message!
+     */
     @Override
     public void exit() {
         this.server.getClients().remove(username);

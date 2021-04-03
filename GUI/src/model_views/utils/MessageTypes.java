@@ -5,5 +5,4 @@ public enum MessageTypes {
     PUBLIC,
     ME,
     OTHER,
-    SERVER
 }

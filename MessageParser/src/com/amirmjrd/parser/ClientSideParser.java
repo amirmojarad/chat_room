@@ -45,7 +45,6 @@ public class ClientSideParser extends Parser {
         this.message = new Message(messageText, Commands.PUBLIC_MESSAGE);
         this.message.setMessageLength(Integer.parseInt(tokensList.get(4)));
         this.message.setBodyMessage(messageBody);
-        System.out.println("BODY MESSAGE" + messageBody);
     }
 
     private void privateMessage() {

@@ -11,10 +11,15 @@ import model.User;
 import java.io.File;
 
 public class Main extends Application {
+    // stage used in program
     public static Stage mainStage;
+    // user used in program
     public static User user;
 
-    public static void main(String[] args) { launch(args); }
+    public static void main(String[] args) {
+        launch(args);
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
         mainStage = stage;
@@ -28,6 +33,11 @@ public class Main extends Application {
         });
     }
 
+    /**
+     *  set min width and height for init program
+     *  set "ChatRoom" as stage's title
+     *  load chat icon from resources
+     */
     private void initStageUI() {
         mainStage.setMinWidth(600);
         mainStage.setMinHeight(400);

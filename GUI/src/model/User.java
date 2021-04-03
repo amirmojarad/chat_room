@@ -24,10 +24,8 @@ public class User {
         return client;
     }
 
-
     public String getUsername() {
         return username;
     }
-
 
 }

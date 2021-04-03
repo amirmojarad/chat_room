@@ -76,7 +76,6 @@ public class ServerSideParser extends Parser {
     }
 
     private ArrayList<String> splitUsernames(String usernames) {
-        System.out.println(usernames);
         String[] usernamesStrings = usernames.split(",");
         return new ArrayList<>(Arrays.asList(usernamesStrings));
     }

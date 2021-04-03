@@ -1,21 +1,26 @@
 package com.amirmjrd.client;
 
-import com.amirmjrd.Commands;
 import com.amirmjrd.Messages;
 import com.amirmjrd.interfaces.IProtocol;
 import com.amirmjrd.interfaces.SuperClient;
 
 import java.io.IOException;
 
+/**
+ * implement methods of IProtocol
+ * interface between SuperClient and outer world
+ */
 public class Client extends SuperClient implements IProtocol {
-
     public Client(String username) throws IOException {
         super();
         this.username = username;
         handShake();
     }
 
-
+    /**
+     * send message with content HANDSHAKE
+     * by IProtocol
+     */
     @Override
     public void handShake() {
         try {
@@ -25,6 +30,12 @@ public class Client extends SuperClient implements IProtocol {
         }
     }
 
+    /**
+     * send message with content EXIT
+     * by IProtocol
+     * <p>
+     * closing socket and I/O Components
+     */
     @Override
     public void exit() {
         try {
@@ -37,6 +48,10 @@ public class Client extends SuperClient implements IProtocol {
         }
     }
 
+    /**
+     * send message with content GET_LIST
+     * by IProtocol
+     */
     @Override
     public void getList() {
         try {
@@ -46,16 +61,23 @@ public class Client extends SuperClient implements IProtocol {
         }
     }
 
+    /**
+     * send message with content PUBLIC_MESSAGE
+     * by IProtocol
+     */
     @Override
     public void sendPublicMessage() {
         try {
             sendMessage(Messages.clientPublicMessage(message));
-//            receiveMessage();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * send message with content PRIVATE_MESSAGE
+     * by IProtocol
+     */
     @Override
     public void sendPrivateMessage() {
         try {
@@ -65,17 +87,23 @@ public class Client extends SuperClient implements IProtocol {
         }
     }
 
+    /**
+     * thread for running client side program
+     * while exit not called resume to work
+     * receiving messages
+     * sending to parser
+     * get the message
+     * added it to message stack
+     */
     @Override
     public void run() {
         while (!exit) {
             try {
-                if(this.socket.isClosed()) break;
+                if (this.socket.isClosed()) break;
                 receiveMessage();
-                Commands commands = serverSideParser.findTypeOfMessage(messageText);
+                serverSideParser.findTypeOfMessage(messageText);
                 message = serverSideParser.getMessage();
                 this.messages.add(this.message);
-                if(commands.equals(Commands.PRIVATE_MESSAGE))
-                    System.out.println("in Run: "+message.getBodyMessage());
             } catch (IOException e) {
                 e.printStackTrace();
             }

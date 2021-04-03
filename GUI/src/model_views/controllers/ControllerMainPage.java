@@ -31,7 +31,15 @@ public class ControllerMainPage {
     TextArea messageBoxPublic, messageBoxPrivate;
     @FXML
     ScrollPane messagesView, chats, onlineUsers;
+    //selected usernames
+    ArrayList<String> privateUsernames = new ArrayList<>();
 
+    /**
+     * set message fo client by public conditions
+     * and send message by client
+     * clear textFields
+     * then update the message box
+     */
     @FXML
     private void sendPublicMessage() {
         Main.user.getClient().setMessage(messageBoxPublic.getText(), Commands.PUBLIC_MESSAGE);
@@ -40,6 +48,12 @@ public class ControllerMainPage {
         update();
     }
 
+    /**
+     * set message fo client by private conditions
+     * and send message by client
+     * clear textFields
+     * then update the message box
+     */
     @FXML
     private void sendPrivateMessage() {
         Main.user.getClient().setMessage(messageBoxPrivate.getText(), Commands.PRIVATE_MESSAGE);
@@ -51,6 +65,12 @@ public class ControllerMainPage {
         update();
     }
 
+    /**
+     * generate label for private chats that client has connection with them
+     *
+     * @param name username
+     * @return for set in vbox(chats)
+     */
     private Parent generatePrivateLabel(String name) {
         Rectangle rectangle = new Rectangle();
         rectangle.setArcHeight(15);
@@ -63,28 +83,33 @@ public class ControllerMainPage {
         /////////////////////////////////////////////////////
         StackPane stack = new StackPane(rectangle, text);
         stack.setPadding(new Insets(10));
-//        stack.setOnMouseClicked(mouseEvent -> {
-//
-//        });
         return stack;
     }
 
+    /**
+     * add private chats by username in chats area
+     * first clear the list, then add labels
+     */
     private void addPrivateChat() {
         VBox vBox = (VBox) chats.getContent();
-        this.privateUsernames.forEach(s -> {
-
-            vBox.getChildren().add(generatePrivateLabel(s));
-        });
+        vBox.getChildren().clear();
+        this.privateUsernames.forEach(s -> vBox.getChildren().add(generatePrivateLabel(s)));
     }
 
+    /**
+     * default ControllerMainPage
+     * start client program thread and update the ui
+     */
     public ControllerMainPage() {
         Main.user.getClient().start();
         update();
     }
 
-    ArrayList<String> privateUsernames = new ArrayList<>();
-
-
+    /**
+     * run a thread with infinite loop
+     * if client messages is not empty
+     * set action text
+     */
     @FXML
     private void update() {
         Thread thread = new Thread(() -> {
@@ -97,31 +122,32 @@ public class ControllerMainPage {
         Platform.runLater(thread);
     }
 
+    /**
+     * send GET_LIST request to server
+     * get message that received
+     */
+
     @FXML
     private void showUsers() {
         Main.user.getClient().getList();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Message message = Main.user.getClient().getLastMessage();
         if (message == null) return;
         if (!message.getCommands().equals(Commands.GET_LIST)) return;
-        VBox chatsContent = (VBox) this.chats.getContent();
-        Rectangle chatRect = new Rectangle();
-        chatRect.setFill(Color.rgb(133, 207, 116));
-        chatRect.setArcWidth(20);
-        chatRect.setArcHeight(20);
-        StackPane chatStack = new StackPane();
-        chatStack.setPadding(new Insets(10, 0, 10, 100));
-
         VBox vBox = (VBox) onlineUsers.getContent();
         vBox.setAlignment(Pos.TOP_CENTER);
         vBox.getChildren().clear();
         message.getUsernames().forEach(s -> {
-            Rectangle rectangle = new Rectangle(293, 50);
-            rectangle.setFill(Color.rgb(6, 188, 212));
-            rectangle.setArcHeight(15);
-            rectangle.setArcWidth(15);
-            StackPane stackPane = new StackPane();
+            // create rectangle
+            Rectangle rectangle = makeRectangle(Color.rgb(6, 188, 212), 293, 50, 15, 15);
+            // create stack pane
+            StackPane stackPane = new StackPane(rectangle);
             stackPane.setPadding(new Insets(10, 0, 10, 100));
-            stackPane.getChildren().add(rectangle);
+            // create label , if username is equal to this client username , add ME as in first of label text
             Label label = new Label();
             if (s.equals(Main.user.getUsername()))
                 label.setText(String.format("ME as %s", s));
@@ -132,36 +158,37 @@ public class ControllerMainPage {
                 if (!label.getText().contains("ME")) {
                     selectUsername(rectangle);
                     this.privateUsernames.add(s);
-//                    Label label1 = new Label(s);
-//                    chatStack.getChildren().addAll(chatRect, label1);
-//                    chatsContent.getChildren().add(chatStack);
                 }
-
             });
             vBox.getChildren().add(stackPane);
         });
 
     }
 
+    /**
+     * return selected rectangle as different color
+     *
+     * @param rectangle
+     */
     private void selectUsername(Rectangle rectangle) {
         rectangle.setFill(Color.rgb(175, 107, 204));
     }
 
-    void showMessageOnMessageBox(MessageTypes messageTypes) {
-        switch (messageTypes) {
-            case PUBLIC:
-                break;
-            case PRIVATE:
-                break;
-            case OTHER:
-        }
-
-    }
-
+    /**
+     * Private:
+     * - if message is from this client, add message from ME type
+     * - else add message as OTHER type
+     * Public:
+     * - if message is from this client, add message from ME type
+     * - else add message as OTHER type
+     * Handshake & Exit:
+     * - these messages are from server and has different type
+     *
+     * @param message take it and decide what kind of message is
+     */
     @FXML
     private void actionTexts(Message message) {
         if (message == null) return;
-        System.out.println("from action text: " + message.getCommands());
         VBox vBox = (VBox) messagesView.getContent();
         switch (message.getCommands()) {
             case PRIVATE_MESSAGE:
@@ -180,10 +207,7 @@ public class ControllerMainPage {
                 break;
             case HANDSHAKE:
             case EXIT:
-                Rectangle rec = new Rectangle(300, 20);
-                rec.setArcHeight(20);
-                rec.setArcWidth(20);
-                rec.setFill(Color.rgb(117, 126, 255));
+                Rectangle rec = makeRectangle(Color.rgb(117, 126, 255), 300, 20, 20, 20);
                 StackPane stackPane = new StackPane();
                 stackPane.setAlignment(Pos.CENTER);
                 Text textNode = new Text(message.getRawMessage());
@@ -196,20 +220,26 @@ public class ControllerMainPage {
         }
     }
 
+    /**
+     * @param usernames these usernames are for private message selected
+     * @return generate usernames string by comma separating
+     */
     private String getUsernamesAsString(ArrayList<String> usernames) {
         StringBuilder builder = new StringBuilder();
         usernames.forEach(s -> builder.append(s).append(","));
         return builder.toString();
     }
 
-
+    /**
+     *
+     * @param person Other or Me!
+     * @param message
+     * @return
+     */
     private HBox generateMessage(MessageTypes person, Message message) {
-        System.out.println("from generate message: " + message.getCommands());
         String accessLevel = message.getCommands() == Commands.PRIVATE_MESSAGE ? "Private" : "Public";
         String usernames = getUsernamesAsString(message.getUsernames());
-        Rectangle rec = new Rectangle(300, 100);
-        rec.setArcHeight(20);
-        rec.setArcWidth(20);
+        Rectangle rec = makeRectangle(Color.WHITE, 300, 100, 20, 20);
         StackPane stackPane = new StackPane();
         stackPane.setAlignment(Pos.TOP_LEFT);
         StackPane.setMargin(stackPane, new Insets(20));
@@ -242,8 +272,20 @@ public class ControllerMainPage {
         hBox.setAlignment(Pos.BASELINE_LEFT);
         hBox.setPadding(new Insets(10, 0, 0, 10));
         hBox.getChildren().add(stackPane);
-
         return hBox;
+    }
+
+    private Rectangle makeRectangle(Color color, double width, double height) {
+        Rectangle rectangle = new Rectangle(width, height);
+        rectangle.setFill(color);
+        return rectangle;
+    }
+
+    private Rectangle makeRectangle(Color color, double width, double height, double arcWidth, double arcHeight) {
+        Rectangle rectangle = makeRectangle(color, width, height);
+        rectangle.setArcWidth(arcWidth);
+        rectangle.setArcHeight(arcHeight);
+        return rectangle;
     }
 
 
