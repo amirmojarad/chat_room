@@ -4,6 +4,6 @@ Based on Client-Server Architecture.
 No External Library.
 
 Used:
-*Java: `java 11`**
-*JavaFX: `javaFX 11`**
+Java: `java 11`
+JavaFX: `javaFX 11`
 
