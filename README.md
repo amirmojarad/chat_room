@@ -80,7 +80,11 @@ then make a class on `chat_room/src` and run `Main` from Module `GUI`.
     ```bash
        User left the chat room.
     ```
-
+  * `Online Users` :
+     ```bash
+        Here is the list of attendees :
+        <username1>,<username2>,...
+     ```
   * `Welcome` :
 
     ```bash
