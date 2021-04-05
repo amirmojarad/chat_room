@@ -78,7 +78,7 @@ then make a class on `chat_room/src` and run `Main` from Module `GUI`.
   * `User logout` :
 
     ```bash
-        Server, 301, User left the chat room.
+       User left the chat room.
     ```
 
   * `Welcome` :
