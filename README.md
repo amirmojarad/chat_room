@@ -84,7 +84,7 @@ then make a class on `chat_room/src` and run `Main` from Module `GUI`.
   * `Welcome` :
 
     ```bash
-        Server, 201, Hi User, welcome to the chat room.
+        Hi User, welcome to the chat room.
     ```
 
   * `User Join Public Message` :
