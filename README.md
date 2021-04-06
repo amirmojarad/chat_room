@@ -100,4 +100,10 @@ then make a class on `chat_room/src` and run `Main` from Module `GUI`.
 
 ![Sign Up](https://github.com/amirmojarad/chat_room/blob/main/screenshots/sign_up_page.png)
 
+Sing Up Page
+
 ![Main Page](https://github.com/amirmojarad/chat_room/blob/main/screenshots/main_page.png)
+
+Main Page
+
+
