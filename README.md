@@ -17,6 +17,7 @@ No External Library.
 * Server
 * GUI
 * Protocol
+* Message Parser
 
 # Usage
 
