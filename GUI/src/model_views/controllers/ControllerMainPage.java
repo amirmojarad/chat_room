@@ -32,7 +32,14 @@ public class ControllerMainPage {
     @FXML
     ScrollPane messagesView, chats, onlineUsers;
     //selected usernames
+
     ArrayList<String> privateUsernames = new ArrayList<>();
+    Color privateMessage = Color.rgb(190, 225, 252);
+    Color publicMessage = Color.rgb(135, 255, 165);
+    Color serverMessage = Color.rgb(135, 255, 225);
+    Color onlineUser = Color.rgb(0, 200, 255);
+    Color selectedOnlineUser = Color.rgb(122, 226, 255);
+    Color privateChat = Color.rgb(109, 9, 231);
 
     /**
      * set message fo client by public conditions
@@ -56,6 +63,7 @@ public class ControllerMainPage {
      */
     @FXML
     private void sendPrivateMessage() {
+        if (privateUsernames.isEmpty()) return;
         Main.user.getClient().setMessage(messageBoxPrivate.getText(), Commands.PRIVATE_MESSAGE);
         Main.user.getClient().setSelectedUsernames(this.privateUsernames);
         Main.user.getClient().sendPrivateMessage();
@@ -73,11 +81,11 @@ public class ControllerMainPage {
      */
     private Parent generatePrivateLabel(String name) {
         Rectangle rectangle = new Rectangle();
-        rectangle.setArcHeight(15);
-        rectangle.setArcWidth(15);
-        rectangle.setFill(Color.rgb(53, 255, 184));
+        rectangle.setArcHeight(20);
+        rectangle.setArcWidth(20);
+        rectangle.setFill(privateChat);
         rectangle.setWidth(400);
-        rectangle.setHeight(20);
+        rectangle.setHeight(100);
         /////////////////////////////////////////////////////
         Text text = new Text(name);
         /////////////////////////////////////////////////////
@@ -143,7 +151,7 @@ public class ControllerMainPage {
         vBox.getChildren().clear();
         message.getUsernames().forEach(s -> {
             // create rectangle
-            Rectangle rectangle = makeRectangle(Color.rgb(6, 188, 212), 293, 50, 15, 15);
+            Rectangle rectangle = makeRectangle(onlineUser, 293, 50, 15, 15);
             // create stack pane
             StackPane stackPane = new StackPane(rectangle);
             stackPane.setPadding(new Insets(10, 0, 10, 100));
@@ -171,7 +179,7 @@ public class ControllerMainPage {
      * @param rectangle
      */
     private void selectUsername(Rectangle rectangle) {
-        rectangle.setFill(Color.rgb(175, 107, 204));
+        rectangle.setFill(selectedOnlineUser);
     }
 
     /**
@@ -207,7 +215,7 @@ public class ControllerMainPage {
                 break;
             case HANDSHAKE:
             case EXIT:
-                Rectangle rec = makeRectangle(Color.rgb(117, 126, 255), 300, 20, 20, 20);
+                Rectangle rec = makeRectangle(serverMessage, 300, 20, 20, 20);
                 StackPane stackPane = new StackPane();
                 stackPane.setAlignment(Pos.CENTER);
                 Text textNode = new Text(message.getRawMessage());
@@ -231,8 +239,7 @@ public class ControllerMainPage {
     }
 
     /**
-     *
-     * @param person Other or Me!
+     * @param person  Other or Me!
      * @param message
      * @return
      */
@@ -252,19 +259,19 @@ public class ControllerMainPage {
         if (person.equals(MessageTypes.ME) && message.getCommands().equals(Commands.PRIVATE_MESSAGE)) {
             header.setText(String.format("%s Message From Me to %s: ", accessLevel, usernames));
             bodyMessage.getChildren().add(header);
-            rec.setFill(Color.rgb(53, 240, 122));
+            rec.setFill(publicMessage);
         } else if (person.equals(MessageTypes.ME) && message.getCommands().equals(Commands.PUBLIC_MESSAGE)) {
             header.setText(String.format("%s Message From Me: ", accessLevel));
             bodyMessage.getChildren().add(header);
-            rec.setFill(Color.rgb(53, 240, 122));
+            rec.setFill(publicMessage);
         } else if (person.equals(MessageTypes.OTHER) && message.getCommands().equals(Commands.PUBLIC_MESSAGE)) {
             header.setText(String.format("%s Message From %s: ", accessLevel, message.getUsername()));
             bodyMessage.getChildren().add(header);
-            rec.setFill(Color.rgb(0, 122, 203));
+            rec.setFill(privateMessage);
         } else if (person.equals(MessageTypes.OTHER) && message.getCommands().equals(Commands.PRIVATE_MESSAGE)) {
             header.setText(String.format("%s Message From %s: ", accessLevel, message.getUsername()));
             bodyMessage.getChildren().add(header);
-            rec.setFill(Color.rgb(0, 122, 203));
+            rec.setFill(privateMessage);
         }
         bodyMessage.getChildren().add(text);
         stackPane.getChildren().addAll(rec, bodyMessage);
